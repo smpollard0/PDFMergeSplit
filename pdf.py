@@ -21,14 +21,18 @@ class MainWindow(QWidget):
 
         # Inner layout
         innerLayout = QHBoxLayout()
-        self.listView = QListView()
-        innerLayout.addWidget(self.listView)
+        self.listWidget = QListWidget()
+        innerLayout.addWidget(self.listWidget)
 
         # Button layout
         buttonLayout = QVBoxLayout()
         self.upBtn = QPushButton("↑")
         self.upBtn.clicked.connect(self.moveUp)
         buttonLayout.addWidget(self.upBtn)
+
+        self.deleteBtn = QPushButton("X")
+        self.deleteBtn.clicked.connect(self.deleteEntry)
+        buttonLayout.addWidget(self.deleteBtn)
         
         self.downBtn = QPushButton("↓")
         self.downBtn.clicked.connect(self.moveDown)
@@ -45,8 +49,6 @@ class MainWindow(QWidget):
         self.setWindowTitle("PDFMergeSplit")
 
     def getFile(self):
-        model = QStandardItemModel()
-
         # Open dialog and have the user select files
         dlg = QFileDialog()
         dlg.setFileMode(QFileDialog.AnyFile)
@@ -58,16 +60,10 @@ class MainWindow(QWidget):
         # This removes duplicates from the list
         self.fileNames = list(set(self.fileNames))
 
-        print(self.fileNames)
-
-        # Go through the selected files 
-
+        # Go through the selected files
+        self.listWidget.clear() # Clear the list widget
         for name in self.fileNames:
-            item = QStandardItem(str(name))
-            model.appendRow(item)
-
-        self.listView.setModel(model)
-        print("stupid")
+            self.listWidget.addItem(name)
 
     def moveUp(self):
         print("up")
@@ -77,6 +73,11 @@ class MainWindow(QWidget):
 
     def merge(self):
         print("merge")
+
+    def deleteEntry(self):
+        selectedItems = self.listWidget.selectedItems()
+        for item in selectedItems:
+            self.listWidget.takeItem(self.listWidget.row(item))
 
 
 def main():
