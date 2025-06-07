@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import *
 This is a GUI program that allows the user to merge and split pdfs.
 '''
 
+def swap(index1, index2, listLike):
+    listLike[index1], listLike[index2] = listLike[index2], listLike[index1]
+
 class MainWindow(QWidget):
     def __init__(self, parent = None):
         super(MainWindow, self).__init__(parent)
@@ -66,19 +69,41 @@ class MainWindow(QWidget):
             self.listWidget.addItem(name)
 
     def moveUp(self):
-        print("up")
+        row = self.listWidget.row(self.listWidget.selectedItems()[0])
+        if row > 0:
+            swap(row,row-1,self.fileNames)
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row - 1, item)
+            self.listWidget.setCurrentRow(row - 1)
 
     def moveDown(self):
-        print("down")
+        row = self.listWidget.row(self.listWidget.selectedItems()[0])
+        if row < self.listWidget.count()-1:
+            swap(row,row+1,self.fileNames)
+            item = self.listWidget.takeItem(row)
+            self.listWidget.insertItem(row + 1, item)
+            self.listWidget.setCurrentRow(row + 1)
 
     def merge(self):
-        print("merge")
+        merger = pypdf.PdfWriter()
+
+        for pdf in self.fileNames:
+            merger.append(pdf)
+
+        merger.write("merged-pdf.pdf")
+        merger.close()
+
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Merged PDF created merged-pdf.pdf")
+        msg.setWindowTitle("Success")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def deleteEntry(self):
         selectedItems = self.listWidget.selectedItems()
         for item in selectedItems:
             self.listWidget.takeItem(self.listWidget.row(item))
-
 
 def main():
     app = QApplication([])
