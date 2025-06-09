@@ -10,6 +10,7 @@ class SplitTab(QWidget):
         self.fileName = ""
         self.startPage = 0
         self.endPage = 0
+        self.numPages = 0
         self.splitIntoIndividual = False
         self.setupUI()
 
@@ -25,9 +26,27 @@ class SplitTab(QWidget):
         self.fileField = QTextEdit()
         self.fileField.setReadOnly(True)
         layout.addWidget(self.fileField)
+        
+        instructions = QLabel(
+            "Specify page ranges to extract\n"
+            "Example: 1-3,5,7-9"
+        )
+        instructions.setWordWrap(True)
+        layout.addWidget(instructions)
 
-        # Fields to hold values for page numbers
+        # Textbox for page ranges
+        self.textbox = QLineEdit()
+        self.textbox.setPlaceholderText("Enter page range...")
+        self.textbox.setMaximumWidth(200)
+        self.textbox.setReadOnly(False)
 
+        layout.addWidget(self.textbox)
+
+
+        # Split PDF button
+        self.splitBtn = QPushButton("Split PDF")
+        self.splitBtn.clicked.connect(self.splitPDF)
+        layout.addWidget(self.splitBtn)
         self.setLayout(layout)
     
     def getFile(self):
@@ -38,3 +57,12 @@ class SplitTab(QWidget):
         if dlg.exec_():
             self.fileName = dlg.selectedFiles()[0]
             self.fileField.setText(self.fileName)
+
+    def splitPDF(self):
+        result = self.parseTextField()
+
+        print("split")
+
+    def parseTextField(self):
+
+        print("parsed")
