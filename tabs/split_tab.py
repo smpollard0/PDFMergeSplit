@@ -119,7 +119,6 @@ class SplitTab(QWidget):
     # of pages to extract from the provded PDF
     def parseTextField(self):
         textFieldSplit = self.textbox.text().split(',')
-        # EDIT: Come back and create proper error message dialog box
         # If the user didn't put a valid string in the text field
         # Every character in the textFieldSplit should either be an integer or a hyphen
         for word in textFieldSplit:
