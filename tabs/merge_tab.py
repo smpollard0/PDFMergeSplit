@@ -80,6 +80,8 @@ class MergeTab(QWidget):
             self.listWidget.setCurrentRow(row + 1)
 
     def merge(self):
+        # This is grabbed directly from pypdf documentation
+        # https://pypdf.readthedocs.io/en/stable/user/merging-pdfs.html
         merger = pypdf.PdfWriter()
 
         for pdf in self.fileNames:

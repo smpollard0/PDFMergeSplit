@@ -34,14 +34,24 @@ class SplitTab(QWidget):
         instructions.setWordWrap(True)
         layout.addWidget(instructions)
 
+        # Button for toggling splitIntoIndividualPDFs
+        toggleBtn = QToolButton()
+        toggleBtn.setCheckable(True)
+        toggleBtn.toggled.connect(self.toggleBtn)
+
+        toggleWidget = QWidget()
+        toggleLayout = QHBoxLayout(toggleWidget)
+        toggleLayout.addWidget(toggleBtn)
+        toggleLayout.addWidget(QLabel("Split into individual PDFs"))
+        toggleLayout.setContentsMargins(0, 0, 0, 0) # Remove extra margins
+        layout.addWidget(toggleWidget)
+
         # Textbox for page ranges
         self.textbox = QLineEdit()
         self.textbox.setPlaceholderText("Enter page range...")
         self.textbox.setMaximumWidth(200)
         self.textbox.setReadOnly(False)
-
         layout.addWidget(self.textbox)
-
 
         # Split PDF button
         self.splitBtn = QPushButton("Split PDF")
@@ -59,10 +69,64 @@ class SplitTab(QWidget):
             self.fileField.setText(self.fileName)
 
     def splitPDF(self):
+        # EDIT: Come back and create proper error message dialog box
+        if (self.fileName == ""):
+            print("no file selected")
         result = self.parseTextField()
+        print(result)
 
-        print("split")
+        # Create the PDF object to read
+        input = pypdf.PdfReader(self.fileName)
 
+        # For each set of ranges, create and write a PDF
+        if (self.splitIntoIndividual):
+            for (start, end) in result:
+                writer = pypdf.PdfWriter()
+                with open(f"./extracted-pdf-{start}-{end}", 'w') as outputFile:
+                    writer.append(fileobj=input, pages=(start,end))
+                    writer.write(outputFile)
+                writer.close()         
+        else:
+            writer = pypdf.PdfWriter()
+            for (start, end) in result:
+                with open(f"./extracted-pdf-{start}-{end}", 'w') as outputFile:
+                    with pypdf.PdfWriter() as writer:
+                        writer.append(fileobj=input, pages=(start,end))
+            writer.write(outputFile)
+            writer.close()
+
+
+    # This function returns a list of tuples which represent all of the ranges
+    # of pages to extract from the provded PDF
     def parseTextField(self):
+        textFieldSplit = self.textbox.text().split(',')
+        # EDIT: Come back and create proper error message dialog box
+        if textFieldSplit[0] == '':
+            print("womp womp")
 
-        print("parsed")
+        result = []
+
+        for item in textFieldSplit:
+            itemRange = item.split('-')
+            # EDIT: Come back and create proper error message dialog box
+            if len(itemRange) > 2:
+                print("womp womp")
+            elif len(itemRange) == 1:
+                start = itemRange[0]
+                end = start
+            else:
+                start = itemRange[0]
+                end = itemRange[1]
+
+            # EDIT: Come back and create proper error message dialog box
+            if (start > end):
+                print(f"invalid page range\nstart: {start}\nend: {end}")
+            result.append((start,end))
+
+        return result
+    
+    def toggleBtn(self, checked):
+        if checked:
+            self.splitIntoIndividual = True
+        else:
+            self.splitIntoIndividual = False
