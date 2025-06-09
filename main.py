@@ -29,7 +29,6 @@ class MainWindow(QWidget):
 
         mainLayout.addWidget(self.tabs)
 
-        # self.setLayout(mainLayout) # Sets layout of entire window
         self.setWindowTitle("PDFMergeSplit")
 
 def main():
