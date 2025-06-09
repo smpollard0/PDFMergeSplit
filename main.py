@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import pypdf
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
