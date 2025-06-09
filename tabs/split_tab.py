@@ -11,6 +11,7 @@ class SplitTab(QWidget):
         self.startPage = 0
         self.endPage = 0
         self.numPages = 0
+        self.pdfsCreated = []
         self.splitIntoIndividual = False
         self.setupUI()
 
@@ -70,30 +71,45 @@ class SplitTab(QWidget):
             self.fileField.setText(self.fileName)
 
     def splitPDF(self):
+        if (self.fileName == ""):
+            self.errorDialog("No PDF Selected")
+            return
         # Create the PDF object to read
         input = pypdf.PdfReader(self.fileName)
         self.numPages = len(input.pages)
-
-        # EDIT: Come back and create proper error message dialog box
-        if (self.fileName == ""):
-            print("no file selected")
         result = self.parseTextField()
+        if result == -1:
+            return
 
         # For each set of ranges, create and write a PDF
         if (self.splitIntoIndividual):
             for (start, end) in result:
                 writer = pypdf.PdfWriter()
                 writer.append(fileobj=input, pages=(start-1,end))
-                with open(f"./extracted-pdf-{start}-{end}.pdf", 'wb') as outputFile:
+                outputFileName = f"./extracted-pdf-{start}-{end}.pdf"
+                with open(outputFileName, 'wb') as outputFile:
                     writer.write(outputFile)
+                    self.pdfsCreated.clear()
+                    self.pdfsCreated.append(outputFileName)
                 writer.close()         
         else:
             writer = pypdf.PdfWriter()
             for (start, end) in result:
                 writer.append(fileobj=input, pages=(start-1,end))
-                with open(f"./extracted-pdf-{start}-{end}", 'wb') as outputFile:
+                outputFileName = f"./extracted-pdf-{start}-{end}.pdf"
+                with open(outputFileName, 'wb') as outputFile:
                     writer.write(outputFile)
+                    self.pdfsCreated.clear()
+                    self.pdfsCreated.append(outputFileName)
             writer.close()
+
+        # Throw up success dialog
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Split PDFs created merged-pdf.pdf")
+        msg.setWindowTitle("Success")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
 
     # This function returns a list of tuples which represent all of the ranges
@@ -101,26 +117,37 @@ class SplitTab(QWidget):
     def parseTextField(self):
         textFieldSplit = self.textbox.text().split(',')
         # EDIT: Come back and create proper error message dialog box
-        if textFieldSplit[0] == '':
-            print("womp womp")
+        # If the user didn't put a valid string in the text field
+        # Every character in the textFieldSplit should either be an integer or a hyphen
+        for word in textFieldSplit:
+            for char in word:
+                if (ord(char) < 48 or ord(char) > 57) and (char != '-'):
+                    self.errorDialog(f"Invalid page range\nPage Range: {textFieldSplit}")
+                    return -1
+    
 
         result = []
 
         for item in textFieldSplit:
             itemRange = item.split('-')
-            # EDIT: Come back and create proper error message dialog box
+            # If the user put something with multiple hyphens like 1-2-8 instead of 1-2,8
             if len(itemRange) > 2:
-                print("womp womp")
+                self.errorDialog(f"Invalid page range: {itemRange}")
+                return -1
             elif len(itemRange) == 1:
-                start = itemRange[0]
+                start = int(itemRange[0])
                 end = start
             else:
-                start = itemRange[0]
-                end = itemRange[1]
+                start = int(itemRange[0])
+                end = int(itemRange[1])
 
-            # EDIT: Come back and create proper error message dialog box
+            # If the start or end are greater than the number of pages in the PDF
+            if (start > self.numPages) or (end > self.numPages):
+                self.errorDialog(f"Start or end greater than number of pages\nStart: {start}\nEnd: {end}\nNumber of Pages: {self.numPages}")
+                return -1
             if (start > end):
-                print(f"invalid page range\nstart: {start}\nend: {end}")
+                self.errorDialog(f"Invalid page range\nStart: {start}\nEnd: {end}")
+                return -1
             result.append((int(start),int(end)))
 
         return result
@@ -130,3 +157,11 @@ class SplitTab(QWidget):
             self.splitIntoIndividual = True
         else:
             self.splitIntoIndividual = False
+
+    def errorDialog(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(message)
+        msg.setWindowTitle("FAILURE")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
