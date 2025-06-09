@@ -39,6 +39,7 @@ class SplitTab(QWidget):
         toggleBtn.setCheckable(True)
         toggleBtn.toggled.connect(self.toggleBtn)
 
+        # A widget to hold the toggle button
         toggleWidget = QWidget()
         toggleLayout = QHBoxLayout(toggleWidget)
         toggleLayout.addWidget(toggleBtn)
@@ -69,30 +70,29 @@ class SplitTab(QWidget):
             self.fileField.setText(self.fileName)
 
     def splitPDF(self):
+        # Create the PDF object to read
+        input = pypdf.PdfReader(self.fileName)
+        self.numPages = len(input.pages)
+
         # EDIT: Come back and create proper error message dialog box
         if (self.fileName == ""):
             print("no file selected")
         result = self.parseTextField()
-        print(result)
-
-        # Create the PDF object to read
-        input = pypdf.PdfReader(self.fileName)
 
         # For each set of ranges, create and write a PDF
         if (self.splitIntoIndividual):
             for (start, end) in result:
                 writer = pypdf.PdfWriter()
-                with open(f"./extracted-pdf-{start}-{end}", 'w') as outputFile:
-                    writer.append(fileobj=input, pages=(start,end))
+                writer.append(fileobj=input, pages=(start-1,end))
+                with open(f"./extracted-pdf-{start}-{end}.pdf", 'wb') as outputFile:
                     writer.write(outputFile)
                 writer.close()         
         else:
             writer = pypdf.PdfWriter()
             for (start, end) in result:
-                with open(f"./extracted-pdf-{start}-{end}", 'w') as outputFile:
-                    with pypdf.PdfWriter() as writer:
-                        writer.append(fileobj=input, pages=(start,end))
-            writer.write(outputFile)
+                writer.append(fileobj=input, pages=(start-1,end))
+                with open(f"./extracted-pdf-{start}-{end}", 'wb') as outputFile:
+                    writer.write(outputFile)
             writer.close()
 
 
@@ -121,7 +121,7 @@ class SplitTab(QWidget):
             # EDIT: Come back and create proper error message dialog box
             if (start > end):
                 print(f"invalid page range\nstart: {start}\nend: {end}")
-            result.append((start,end))
+            result.append((int(start),int(end)))
 
         return result
     
