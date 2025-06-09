@@ -80,6 +80,8 @@ class SplitTab(QWidget):
         result = self.parseTextField()
         if result == -1:
             return
+        
+        self.pdfsCreated.clear()
 
         # For each set of ranges, create and write a PDF
         if (self.splitIntoIndividual):
@@ -89,24 +91,25 @@ class SplitTab(QWidget):
                 outputFileName = f"./extracted-pdf-{start}-{end}.pdf"
                 with open(outputFileName, 'wb') as outputFile:
                     writer.write(outputFile)
-                    self.pdfsCreated.clear()
                     self.pdfsCreated.append(outputFileName)
                 writer.close()         
         else:
             writer = pypdf.PdfWriter()
+            outputFileName = f"./extracted-pdf-{min(start for start,_ in result)},{max(end for _,end in result)}.pdf"
             for (start, end) in result:
                 writer.append(fileobj=input, pages=(start-1,end))
-                outputFileName = f"./extracted-pdf-{start}-{end}.pdf"
                 with open(outputFileName, 'wb') as outputFile:
                     writer.write(outputFile)
-                    self.pdfsCreated.clear()
-                    self.pdfsCreated.append(outputFileName)
+            self.pdfsCreated.append(outputFileName)
             writer.close()
 
         # Throw up success dialog
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
-        msg.setText("Split PDFs created merged-pdf.pdf")
+        successString = ""
+        for name in self.pdfsCreated:
+            successString += f"{name}\n"
+        msg.setText(f"Split PDFs created\n{successString}")
         msg.setWindowTitle("Success")
         msg.setStandardButtons(QMessageBox.Ok)
         msg.exec_()
