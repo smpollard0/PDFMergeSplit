@@ -1,26 +1,22 @@
-#!/usr/bin/python3
 import pypdf
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-'''
-This is a GUI program that allows the user to merge and split pdfs.
-'''
-
 def swap(index1, index2, listLike):
     listLike[index1], listLike[index2] = listLike[index2], listLike[index1]
 
-class MainWindow(QWidget):
-    def __init__(self, parent = None):
-        super(MainWindow, self).__init__(parent)
-        # Program-wide variables
+class MergeTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.fileNames = []
+        self.setupUI()
 
-        masterLayout = QVBoxLayout() # Creates the layout
+    def setupUI(self):
+        mergeLayout = QVBoxLayout(self)
         self.btn = QPushButton("Select Files") # Creates the button
         self.btn.clicked.connect(self.getFile) # Assigns logic to button
-        masterLayout.addWidget(self.btn) # Adds the button to the layout
+        mergeLayout.addWidget(self.btn) # Adds the button to the layout
 
         # Inner layout
         innerLayout = QHBoxLayout()
@@ -42,14 +38,11 @@ class MainWindow(QWidget):
         buttonLayout.addWidget(self.downBtn)
         innerLayout.addLayout(buttonLayout)
         
-        masterLayout.addLayout(innerLayout)
+        mergeLayout.addLayout(innerLayout)
 
         self.mergeBtn = QPushButton("Merge PDFs")
         self.mergeBtn.clicked.connect(self.merge)
-        masterLayout.addWidget(self.mergeBtn)
-
-        self.setLayout(masterLayout) # Sets layout of entire window
-        self.setWindowTitle("PDFMergeSplit")
+        mergeLayout.addWidget(self.mergeBtn)
 
     def getFile(self):
         # Open dialog and have the user select files
@@ -68,6 +61,7 @@ class MainWindow(QWidget):
         for name in self.fileNames:
             self.listWidget.addItem(name)
 
+    # EDIT: need to include error checking if there's nothing in the list
     def moveUp(self):
         row = self.listWidget.row(self.listWidget.selectedItems()[0])
         if row > 0:
@@ -76,6 +70,7 @@ class MainWindow(QWidget):
             self.listWidget.insertItem(row - 1, item)
             self.listWidget.setCurrentRow(row - 1)
 
+    # EDIT: need to include error checking if there's nothing in the list
     def moveDown(self):
         row = self.listWidget.row(self.listWidget.selectedItems()[0])
         if row < self.listWidget.count()-1:
@@ -104,13 +99,3 @@ class MainWindow(QWidget):
         selectedItems = self.listWidget.selectedItems()
         for item in selectedItems:
             self.listWidget.takeItem(self.listWidget.row(item))
-
-def main():
-    app = QApplication([])
-    window = MainWindow()
-    window.show()
-
-    app.exec_()
-
-if __name__ == "__main__":
-    main()
